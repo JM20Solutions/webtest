@@ -144,15 +144,40 @@ export default function App() {
             key="login"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="w-full max-w-md p-8 rounded-2xl"
+            className="w-full max-w-md p-10 rounded-3xl"
             style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.08)'
             }}
           >
-            <h2 className="text-xl font-bold mb-6 flex gap-2 items-center">
-              <Sparkles /> Login
-            </h2>
+           <div className="mb-8 text-center">
+  {/* Logo + Brand */}
+  <div className="flex items-center justify-center gap-3 mb-4">
+    <div
+      className="w-10 h-10 rounded-xl flex items-center justify-center"
+      style={{
+        background: 'linear-gradient(135deg, #f5a623, #b87a1a)',
+        boxShadow: '0 4px 20px rgba(245,166,35,0.4)'
+      }}
+    >
+      <Sparkles className="w-5 h-5 text-black" />
+    </div>
+
+    <div className="text-left">
+      <div className="text-lg font-bold">
+        JM20 <span style={{ color: '#f5a623' }}>Agentic</span>
+      </div>
+      <div className="text-xs text-gray-400 leading-tight">
+        Customer Support Services
+      </div>
+    </div>
+  </div>
+
+  {/* Login Title */}
+  <h2 className="text-lg font-semibold text-white">
+    Login
+  </h2>
+</div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <input
