@@ -133,9 +133,11 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sendMessage', chatInput: userText, customer_id: user?.id || '' })
       });
-      const data = await response.json();
+      const text = await response.text(); // ← read as text first
+      const data = JSON.parse(text);      // ← then parse
       const reply = data.output || data.text || data.response || data.message || JSON.stringify(data);
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'agent', text: reply }]);
+            
     } catch (err) {
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'system', text: 'Error connecting to n8n. Please check your webhook URL.' }]);
     } finally {
