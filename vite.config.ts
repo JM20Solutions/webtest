@@ -18,6 +18,13 @@ export default defineConfig(({mode}) => {
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
+      proxy: {
+        '/n8n-webhook': {
+          target: 'https://gpixie.app.n8n.cloud',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/n8n-webhook/, '/webhook/73c8cf09-d134-445b-950a-94a8eccbe4f8'),
+        },
+      },
     },
   };
 });
