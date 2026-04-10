@@ -98,6 +98,7 @@ export default function App() {
         { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
       );
       const data = await res.json();
+      const data = JSON.parse(text);
       if (data.length === 0) {
         setLoginError('Account not found.');
       } else if (data[0].password !== loginPassword) {
