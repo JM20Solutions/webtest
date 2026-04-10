@@ -97,7 +97,8 @@ export default function App() {
         `${SUPABASE_URL}/rest/v1/customers?email=eq.${encodeURIComponent(loginEmail.trim())}&select=id,first_name,last_name,email,password`,
         { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
       );
-      const data = JSON.parse(text);
+      const loginText = await res.text();
+      const data = JSON.parse(loginText);
       if (data.length === 0) {
         setLoginError('Account not found.');
       } else if (data[0].password !== loginPassword) {
@@ -133,11 +134,10 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sendMessage', chatInput: userText, customer_id: user?.id || '' })
       });
-      const responseText = await response.text(); // ← read as text first
-      const responseData = JSON.parse(text);      // ← then parse
+      const responseText = await response.text();
+      const responseData = JSON.parse(responseText);
       const reply = responseData.output || responseData.text || responseData.response || responseData.message || JSON.stringify(responseData);
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'agent', text: reply }]);
-            
     } catch (err) {
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'system', text: 'Error connecting to n8n. Please check your webhook URL.' }]);
     } finally {
