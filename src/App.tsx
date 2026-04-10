@@ -97,7 +97,6 @@ export default function App() {
         `${SUPABASE_URL}/rest/v1/customers?email=eq.${encodeURIComponent(loginEmail.trim())}&select=id,first_name,last_name,email,password`,
         { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
       );
-      const data = await res.json();
       const data = JSON.parse(text);
       if (data.length === 0) {
         setLoginError('Account not found.');
