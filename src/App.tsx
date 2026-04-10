@@ -9,6 +9,9 @@ import { motion, AnimatePresence } from 'motion/react';
 const SUPABASE_URL = 'https://wiavnyuchdsfztzhvaua.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpYXZueXVjaGRzZnp0emh2YXVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDI2ODQsImV4cCI6MjA4NjU3ODY4NH0.dXz7vyFglA_lihma__rbtBT8afZZ1YUJEkAmqpFOL6c';
 const N8N_WEBHOOK_URL = 'https://gpixie.app.n8n.cloud/webhook/73c8cf09-d134-445b-950a-94a8eccbe4f8';
+// In dev the Vite proxy at /n8n-webhook forwards to n8n and adds CORS headers automatically.
+// In production (GitHub Pages) the request goes directly to n8n — ensure n8n sends CORS headers.
+const WEBHOOK_URL = import.meta.env.DEV ? '/n8n-webhook' : N8N_WEBHOOK_URL;
 
 interface UserInfo {
   id: string;
@@ -129,17 +132,42 @@ export default function App() {
     setInputMessage('');
     setIsChatLoading(true);
     try {
-      const response = await fetch(N8N_WEBHOOK_URL, {
+      const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sendMessage', chatInput: userText, customer_id: user?.id || '' })
       });
+
+      if (!response.ok) {
+        throw new Error(`Webhook returned HTTP ${response.status}`);
+      }
+
       const responseText = await response.text();
-      const responseData = JSON.parse(responseText);
-      const reply = responseData.output || responseData.text || responseData.response || responseData.message || JSON.stringify(responseData);
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(responseText);
+      } catch {
+        throw new Error(`Webhook returned non-JSON response: ${responseText.slice(0, 120)}`);
+      }
+
+      // n8n webhook responses are often wrapped in an array: [{output: "..."}]
+      const responseData = Array.isArray(parsed) ? parsed[0] : parsed as Record<string, unknown>;
+      const reply =
+        (responseData as Record<string, unknown>).output as string
+        || (responseData as Record<string, unknown>).text as string
+        || (responseData as Record<string, unknown>).response as string
+        || (responseData as Record<string, unknown>).message as string
+        || JSON.stringify(responseData);
+
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'agent', text: reply }]);
     } catch (err) {
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'system', text: 'Error connecting to n8n. Please check your webhook URL.' }]);
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      // "Failed to fetch" almost always means a CORS block — the request reached n8n but the
+      // browser rejected the response because of missing Access-Control-Allow-Origin headers.
+      const hint = msg.toLowerCase().includes('failed to fetch')
+        ? 'CORS error: the browser blocked the n8n response. Configure CORS headers in your n8n webhook response node.'
+        : msg;
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'system', text: `Error: ${hint}` }]);
     } finally {
       setIsChatLoading(false);
     }
