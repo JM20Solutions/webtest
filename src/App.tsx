@@ -135,7 +135,7 @@ export default function App() {
         body: JSON.stringify({ action: 'sendMessage', chatInput: userText, customer_id: user?.id || '' })
       });
       const responseText = await response.text(); // ← read as text first
-      const responseData = JSON.parse(Text);      // ← then parse
+      const responseData = JSON.parse(text);      // ← then parse
       const reply = responseData.output || responseData.text || responseData.response || responseData.message || JSON.stringify(responseData);
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'agent', text: reply }]);
             
