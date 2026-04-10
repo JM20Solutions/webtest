@@ -143,21 +143,23 @@ export default function App() {
       }
 
       const responseText = await response.text();
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(responseText);
-      } catch {
-        throw new Error(`Webhook returned non-JSON response: ${responseText.slice(0, 120)}`);
-      }
 
-      // n8n webhook responses are often wrapped in an array: [{output: "..."}]
-      const responseData = Array.isArray(parsed) ? parsed[0] : parsed as Record<string, unknown>;
-      const reply =
-        (responseData as Record<string, unknown>).output as string
-        || (responseData as Record<string, unknown>).text as string
-        || (responseData as Record<string, unknown>).response as string
-        || (responseData as Record<string, unknown>).message as string
-        || JSON.stringify(responseData);
+      // n8n can respond with plain text or JSON — handle both
+      let reply: string;
+      try {
+        const parsed = JSON.parse(responseText);
+        // n8n webhook responses are often wrapped in an array: [{output: "..."}]
+        const responseData = (Array.isArray(parsed) ? parsed[0] : parsed) as Record<string, unknown>;
+        reply =
+          responseData.output as string
+          || responseData.text as string
+          || responseData.response as string
+          || responseData.message as string
+          || JSON.stringify(responseData);
+      } catch {
+        // Plain text response — use it directly as the agent reply
+        reply = responseText.trim();
+      }
 
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'agent', text: reply }]);
     } catch (err) {
