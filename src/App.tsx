@@ -134,9 +134,9 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sendMessage', chatInput: userText, customer_id: user?.id || '' })
       });
-      const text = await response.text(); // ← read as text first
-      const data = JSON.parse(text);      // ← then parse
-      const reply = data.output || data.text || data.response || data.message || JSON.stringify(data);
+      const responseText = await response.text(); // ← read as text first
+      const responseData = JSON.parse(Text);      // ← then parse
+      const reply = responseData.output || responseData.text || responseData.response || responseData.message || JSON.stringify(responseData);
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'agent', text: reply }]);
             
     } catch (err) {
